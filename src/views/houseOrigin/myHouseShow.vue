@@ -23,9 +23,12 @@
       </div>
     </div>
     <div v-if="houstList.length === 0" class="uploaddetail noData">
-      <img src="../../assets/img/noData.png" />
-      暂无房源
+      <div class="noData-content">
+        <img src="../../assets/img/noData.png" />
+        <div>暂无房源</div>
+      </div>
     </div>
+
     <div class="contentDetailHouse" v-else>
       <div class="listHouseScroll">
         <ul class="infinite-list" v-infinite-scroll="load">
@@ -39,7 +42,9 @@
               @click="changeActiveOneIndex(item.id, item.id)"
             >
               <div class="itemDeatil">
-                <img v-if="item.image !== ''" :src="item.image | toParse" alt class="itemDeatilImg" />
+                <div v-if="item.image !== ''" class="itemDeatilNoData">
+                  <img alt :src="item.image | toParse" class="itemDeatilImg" />
+                </div>
                 <div v-else class="itemDeatilNoData">
                   <img src="../../assets/img/briefImgPhoto.png" alt class="itemDeatilNoImg" />
                 </div>
@@ -200,6 +205,8 @@ import { mapGetters } from "vuex";
 import config from "@/config";
 import callQuantityList from "./callQuantityList";
 
+const baseUrl = config.IMGURL;
+
 export default {
   data() {
     return {
@@ -207,14 +214,16 @@ export default {
         user: "",
         region: ""
       },
-      houstList: [],
-      totalImportCount: 0, //上传总套数
-      inCardImportHouseCount: 0, //分类总套数
+      count: 1,
       dialogVisible: false,
-      activeTabOneIndex: 0,
-      pz: 500,
-      p: 1,
-      block_or_area: "", // 小区名称或商圈名称
+      dialogImgVisible: false,
+      dialogDescVisible: false,
+      dialogShareVisible: false,
+      dialogCardVisible: false,
+      dialogCallQuantityVisible: false,
+      descTitle: "",
+      res_block_name: "",
+      house_type: "",
       name: "",
       house_direction: "",
       build_area: "",
@@ -226,25 +235,46 @@ export default {
       build_area: "",
       house_type: "",
       house_cards: [],
+      client_total_num: 0,
+      today_client_num: 0,
+      consultation_num: 0,
+      activeTabOneIndex: 0,
+      activeTabTwoIndex: 0,
+      agent_house_intro: null,
+      image: [],
       house_code: "",
-      dialogImgVisible: false,
-      dialogCardVisible: false,
-      dialogShareVisible: false,
+      id: 0,
+      houstList: [],
+      totalImportCount: 0, //上传总房源
+      inCardImportHouseCount: 0, //分类房源
+      block_or_area: "", // 小区名称或商圈名称
       qrcode: "", // 二维码
-      descTitle: "",
-      dialogDescVisible: false,
-      userList: []
+      pz: 500,
+      p: 1,
+      userList: [],
+      userDynamicList: [],
+      nickname: "",
+      headimgurl: "",
+      last_visit_time: "",
+      user_type: "",
+      information: "",
+      house: "",
+      detailUser: {},
+      detailList: []
+
     };
   },
   created() {
-    this.getAllhouseOrignWay();
     this.getList();
+    // this.getStaticClient();
+    // this.getUserDynamicList();
+    this.getAllhouseOrignPart();
   },
   watch: {
     $route(to, from) {
       if (to.path == "/myHouse") {
         this.getList();
-        this.getStaticClient();
+        // this.getStaticClient();
         this.getUserDynamicList();
       }
     }
@@ -462,7 +492,37 @@ export default {
       this.dialogDescVisible = true;
       this.descTitle = title;
     },
+    getAllhouseOrignPart() {
+      let param = {
+        unique_id: this.unique_id,
+      }
+      api.getAllhouseOrign(param).then(response =>{
+        let data = response.data;
+        if(data.status ===0 ) {
+          this.totalImportCount = data.data.totalImportCount;
+          this.inCardImportHouseCount = data.data.inCardImportHouseCount;
+        }
+      }
 
+      )
+    },
+    // 浏览动态
+    getUserList() {
+      let param = {
+        share_target: this.house_code,
+        share_unique_id: this.unique_id,
+        // time: new Date(),
+
+        p: 1,
+        pz: 6
+      };
+      api.getuserAlllist(param).then(response => {
+        let data = response.data;
+        if (data.status === 0) {
+          this.userList = data.data;
+        }
+      });
+    },
     // 浏览动态
     getUserList() {
       let param = {
@@ -485,18 +545,18 @@ export default {
       this.id = id;
       this.getDetail();
     },
-    getAllhouseOrignWay() {
-      let param = {
-        unique_id: this.unique_id
-      };
-      api.getAllhouseOrign(param).then(response => {
-        let data = response.data;
-        if (data.status === 0) {
-          this.totalImportCount = data.data.totalImportCount;
-          this.inCardImportHouseCount = data.data.inCardImportHouseCount;
-        }
-      });
-    },
+    // getAllhouseOrignWay() {
+    //   let param = {
+    //     unique_id: this.unique_id
+    //   };
+    //   api.getAllhouseOrign(param).then(response => {
+    //     let data = response.data;
+    //     if (data.status === 0) {
+    //       this.totalImportCount = data.data.totalImportCount;
+    //       this.inCardImportHouseCount = data.data.inCardImportHouseCount;
+    //     }
+    //   });
+    // },
     // 显示dialog
     isDialogVisible() {
       this.dialogVisible = true;
@@ -514,6 +574,24 @@ export default {
 </script>
 
 <style lang="scss" scoped>
+.noData {
+  text-align: center;
+  padding-top: 30px;
+  background-color: #f8faff;
+  .noData-content {
+    padding-top: 50px;
+    background-color: #fff;
+    height: 370px;
+    img {
+      width: 140px;
+      height: 120px;
+    }
+    div {
+      font-size: 14px;
+      color: #999;
+    }
+  }
+}
 .contentHeader {
   padding: 30px 50px;
   display: flex;
@@ -822,6 +900,10 @@ export default {
       color: #adadad;
       line-height: 20px;
     }
+  }
+  .imageUploadView {
+    width: 240px;
+    height: 120px;
   }
 }
 </style>

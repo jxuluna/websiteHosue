@@ -30,6 +30,15 @@ export default {
       console.log(tab, event);
     }
   },
+  //   watch: {
+  //   $route(to, from) {
+  //     if (to.path == "/myHouse") {
+  //       this.getList();
+  //       this.getStaticClient();
+  //       this.getUserDynamicList();
+  //     }
+  //   }
+  // },
   components:{
     myHouseShow,
     customerDynamic,
