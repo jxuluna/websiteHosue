@@ -63,15 +63,15 @@
         <div class="detailThreeBtn">
           <el-form :inline="true" :model="formInline" class="demo-form-inline">
             <el-form-item>
-              <el-button type="primary" @click="onSubmit" class="uploadHouseResource">上传图片</el-button>
+              <el-button type="primary" @click="isDialogImgVisible" class="uploadHouseResource">上传图片</el-button>
               <el-button
                 type="primary"
-                @click="onSubmit"
+                @click="isDialogCardVisible"
                 class="uploadHouseResource uploadDetailImg"
               >房源分类</el-button>
               <el-button
                 type="primary"
-                @click="onSubmit"
+                @click="shareDetailImg"
                 class="uploadHouseResource shareDetailImg"
               >分享房源</el-button>
             </el-form-item>
@@ -92,36 +92,32 @@
                 <span class="color-4">{{house_price}}万</span>
               </div>
               <div class="introduction">
-                <span>户 型</span>：
-                <span class="color-4">{{house_type}}</span>
+                <span>面 积</span>：
+                <span class="color-4">{{build_area}}平</span>
               </div>
             </div>
             <div class="detailLeft">
-              <div class="introduction">
-                <span>面 积</span>：
-                <span class="color-4">{{build_area}}平</span>
+              <div class="introductionHouseType">
+                <span>户 型</span>：
+                <span class="color-4">{{house_type}}</span>
               </div>
               <div class="introduction detailLeft-last">
                 <span>朝 向</span>：
                 <span class="color-4">{{house_direction}}</span>
-                <div style="position: absolute;right: 36px;top: 69px;">
-                  <span style="margin-left:50px">楼 层</span>:
-                  <span class="color-4">{{room_sub_info}}</span>
-                </div>
+              </div>
+              <div class="floorHouse">
+                <span>楼 层</span>:
+                <span class="color-4">{{room_sub_info}}</span>
               </div>
             </div>
             <div class="detailLeft" style="width:390px;margin-top:0">
               <div class="introduction">
-                <span style="vertical-align: top;margin-top: 2px;display: inline-block;">分 类：</span>
-                <span
-                  style="vertical-align: top;margin-top: 2px;display: inline-block;"
-                  v-if="house_cards.length === 0"
-                  class="color-4"
-                >未分类</span>
+                <span>分 类：</span>
+                <span v-if="house_cards.length === 0" class="color-4">未分类</span>
                 <div v-else-if="house_cards.length > 3" class="house_cards-cate">
-                  <span>{{house_cards[0].name}}</span>
-                  <span>{{house_cards[1].name}}</span>
-                  <span>{{house_cards[2].name}}</span>
+                  <span class="cardsBackground">{{house_cards[0].name}}</span>
+                  <span class="cardsBackground">{{house_cards[1].name}}</span>
+                  <span class="cardsBackground">{{house_cards[2].name}}</span>
                   <span
                     class="viewAllCards"
                     style="cursor:pointer;background-color:#fff;font-size:14px"
@@ -129,15 +125,67 @@
                   >查看全部{{house_cards.length}}个分类></span>
                 </div>
                 <div v-else class="house_cards-cate">
-                  <span v-for="(item, index) in house_cards" :key="index">{{item.name}}</span>
+                  <span
+                    class="cardsBackground"
+                    v-for="(item, index) in house_cards"
+                    :key="index"
+                  >{{item.name}}</span>
                 </div>
               </div>
+            </div>
+          </div>
+        </div>
+        <el-divider class="lineHouse"></el-divider>
+        <div class="houseDescribe">
+          <div class="DescribeEditOrign">
+            <div class="describeTitle">房源描述</div>
+            <div
+              v-if="agent_house_intro"
+              class="describeEdit"
+              @click="isDialogDescVisible('修改描述')"
+            >修改</div>
+            <div v-else class="describeEdit">&nbsp;&nbsp;&nbsp;&nbsp;</div>
+          </div>
+
+          <div v-if="!agent_house_intro">
+            <img src="../../assets/img/editNone.png" alt class="describeEditImg" />
+            <p class="characterNone">暂无描述</p>
+          </div>
+          <div v-if="!agent_house_intro">
+            <el-button type="primary" class="addDescribe" @click="isDialogDescVisible('添加描述')">立即添加</el-button>
+          </div>
+          <div v-else class="describe-content">{{agent_house_intro}}</div>
+        </div>
+        <div class="screenUser">
+          <div class="screenUserFlex">
+            <div class="houseDynamic">浏览动态</div>
+            <div class="dynamicEdit">最近浏览的{{userList.length}}个客户</div>
+          </div>
+
+          <div v-if="userList.length === 0" style="position:relative">
+            <img src="../../assets/img/TImeNoneHouse.png" alt class="describeEditImg" />
+            <p class="noneReader">暂无浏览动态</p>
+          </div>
+          <div class="userList" v-else>
+            <div class="userlist-item" v-for="(item, index) in userList" :key="index">
+              <div class="left">
+                <img :src="item.headimgurl" alt class="itemDeatilImg" />
+                <div>
+                  <p>{{item.nickname}}</p>
+                  <p>浏览{{item.total_visit_time | formatMinute}}</p>
+                </div>
+              </div>
+              <div class="check">{{item.last_visit_time | diffLastTime}}</div>
             </div>
           </div>
         </div>
       </div>
     </div>
     <uploadExcel :show.sync="dialogVisible" />
+    <uploadPhoto :show.sync="dialogImgVisible" :house_code="house_code" />
+    <selectionCard :show.sync="dialogCardVisible" :house_code="house_code" :unique_id="unique_id" />
+    <shareHouse :show.sync="dialogShareVisible" :id="id" :qrcode="qrcode" />
+    <addDesc :show.sync="dialogDescVisible" :title="descTitle" :id="id" />
   </div>
 </template>
 
@@ -171,7 +219,15 @@ export default {
       house_price: "",
       build_area: "",
       house_type: "",
-      house_cards: []
+      house_cards: [],
+      house_code: "",
+      dialogImgVisible: false,
+      dialogCardVisible: false,
+      dialogShareVisible: false,
+      qrcode: "", // 二维码
+      descTitle: "",
+      dialogDescVisible: false,
+      userList: []
     };
   },
   created() {
@@ -381,6 +437,26 @@ export default {
         }
       });
     },
+    // 显示图片dialog
+    isDialogImgVisible() {
+      this.dialogImgVisible = true;
+    },
+    isDialogCardVisible() {
+      this.dialogCardVisible = true;
+    },
+    shareDetailImg(name) {
+      this.dialogShareVisible = true;
+      if (name == "获客") {
+        this.qrcode = "https://tucs.hailuojia.com/wechat/oauth";
+      } else {
+        this.qrcode = `https://th5agent.hailuojia.com/detail?house_code=${this.house_code}&unique_id=${this.unique_id}`;
+      }
+    },
+    isDialogDescVisible(title) {
+      this.dialogDescVisible = true;
+      this.descTitle = title;
+    },
+
     // 浏览动态
     getUserList() {
       let param = {
@@ -456,9 +532,6 @@ export default {
   .uploadTextAll {
     font-weight: 400;
     color: #333333;
-  }
-  .contentDetailHouse {
-    margin-top: 30px;
   }
 }
 .contentDetailHouse {
@@ -578,9 +651,12 @@ export default {
       }
     }
   }
+
   .listHouseDetail {
     flex: 1;
     background-color: #fff;
+    width: 670px;
+    margin-bottom: 20px;
     .uploadHouseResource {
       width: 90px;
       height: 34px;
@@ -592,6 +668,148 @@ export default {
     .detailThreeBtn {
       display: flex;
       justify-content: flex-end;
+    }
+  }
+  .introduceHouse {
+    padding: 16px 28px 36px 28px;
+    display: -webkit-inline-box;
+    .noDataBriefImg {
+      width: 240px;
+      height: 120px;
+      border: 1px solid #d8dde2;
+      border-radius: 4px;
+      justify-content: center;
+      align-items: center;
+      display: flex;
+      .noDataImg {
+        width: 56px;
+        height: 42px;
+      }
+    }
+    .briefDetail {
+      padding-left: 18px;
+      text-align: left;
+      .briefCharacter {
+        font-size: 16px;
+        font-weight: 600;
+        color: #333333;
+        line-height: 22px;
+      }
+      .detailLeft {
+        display: flex;
+        font-size: 14px;
+        font-weight: 400;
+        color: #757575;
+        line-height: 31px;
+        .introduction {
+          margin-right: 20px;
+          display: flex;
+        }
+        .introductionHouseType {
+          margin-right: 33px;
+        }
+      }
+
+      .cardsBackground {
+        font-size: 12px;
+        font-weight: 400;
+        text-align: left;
+        color: #4e84ff;
+        line-height: 18px;
+        padding: 2px;
+        display: inline-block;
+        background: #edf1ff;
+        border-radius: 2px;
+        margin-right: 10px;
+      }
+      .houseBestNone {
+        font-size: 14px;
+        font-weight: 400;
+        color: #757575;
+      }
+    }
+  }
+  .lineHouse {
+    width: 622px;
+    margin: 20px 12px 30px 26px;
+    background-color: #f2f2f2;
+    height: 1px;
+  }
+  .houseDescribe {
+    margin: 0 28px;
+    .DescribeEditOrign {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    .describeEdit {
+      font-size: 14px;
+      font-weight: 500;
+      color: #116ef4;
+      line-height: 22px;
+      cursor: pointer;
+    }
+    .describe-content {
+      font-size: 14px;
+      font-family: PingFangSC, PingFangSC-Regular;
+      font-weight: 400;
+      text-align: justify;
+      color: #999999;
+      margin-top: 20px;
+      line-height: 25px;
+    }
+    .describeTitle {
+      font-size: 16px;
+      font-weight: 500;
+      text-align: left;
+      color: #444444;
+      line-height: 22px;
+    }
+    .describeEditImg {
+      width: 118px;
+      height: 102px;
+    }
+    .characterNone {
+      font-size: 14px;
+      font-weight: 400;
+      color: #adadad;
+      line-height: 20px;
+      margin: 4px 0 14px 0;
+    }
+    .addDescribe {
+      width: 110px;
+      height: 36px;
+    }
+  }
+  .screenUser {
+    margin: 60px 28px;
+    .screenUserFlex {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+    .houseDynamic {
+      font-size: 16px;
+      font-weight: 500;
+      color: #444444;
+      line-height: 22px;
+    }
+    .dynamicEdit {
+      font-size: 14px;
+      font-weight: 400;
+      color: #999999;
+      line-height: 22px;
+    }
+    .describeEditImg {
+      height: 102px;
+      width: 118px;
+      margin-top: 20px;
+    }
+    .noneReader {
+      font-size: 14px;
+      font-weight: 400;
+      color: #adadad;
+      line-height: 20px;
     }
   }
 }

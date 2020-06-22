@@ -36,13 +36,68 @@
       </div>
     </div>
     <shareHouse :show.sync="dialogShareVisible" :id="id" :qrcode="qrcode" />
-
+    <!-- <div v-if="userDynamicList.length === 0" class="uploaddetail noData">
+      <img src="../../assets/img/noData.png" />
+      暂无动态
+    </div>-->
+    <div class="houseDynamicUser">
+      <div class="timeScroll" style="width:386px">
+        <ul class="infinite-list" v-infinite-scroll="load" style="width: 380px;">
+          <li
+            v-for="(item,index) in userDynamicList"
+            class="infinite-list-item"
+            :class="{'infinite-list-item-active': activeTabTwoIndex === index}"
+            @click="changeActiveTwoIndex(index, item.unique_id, item)"
+            :key="index"
+          >
+            <div class="itemDeatil">
+              <img
+                :src="item.headimgurl"
+                alt
+                class="itemDeatilImg"
+                style="position:relative;top:4px"
+              />
+              <div style="position:relative;right:20px;top:12px">
+                <p class="itemDeatilText">{{item.nickname}}</p>
+                <div
+                  class="newUserTime"
+                  style="left:18px;"
+                  :class="{'oldUserTime' : item.user_type === '老用户'}"
+                >
+                  <div class="newConsumer">{{item.user_type}}</div>
+                  <div class="newTimeBefore">{{item.last_visit_time | diffTime}}</div>
+                </div>
+                <div class="scanTimeTotal" style="position:relative;right:44px;bottom:12px;">
+                  <div class="timeLong" style="width:210px;text-align:left">
+                    <span class="bold">{{item.total_visit_time | formatMinute}}</span>
+                    <span class="scanTotal">
+                      浏览 ·
+                      <span class="bold">{{item.house}}</span>套房 ·
+                      <span class="bold">{{item.information}}</span>资讯
+                    </span>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div class="arrow"></div>
+          </li>
+        </ul>
+      </div>
+    </div>
   </div>
 </template>
-
 <script>
+import uploadExcel from "./uploadExcel";
+import uploadPhoto from "./uploadPhoto";
+import addDesc from "./addDesc";
 import shareHouse from "./shareHouse";
+import selectionCard from "./selectionCard";
+import api from "../../api/house";
+import { mapGetters } from "vuex";
+import config from "@/config";
+import callQuantityList from "./callQuantityList";
 
+const baseUrl = config.IMGURL;
 
 export default {
   data() {
@@ -54,25 +109,57 @@ export default {
       dialogShareVisible: false,
       id: 0,
       house_code: "",
-    qrcode:''
+      qrcode: "", // 二维码
+      userDynamicList: [],
+      activeTabTwoIndex: 0,
+      nickname:"",
+      headimgurl: "",
+      user_type: "",
+      last_visit_time: "",
+      house:'',
+      information:'',
     };
   },
-  methods:{
-  shareDetailImg(name) {
-    this.dialogShareVisible = true;
-    if (name == "获客") {
-        debugger
-      this.qrcode = "https://tucs.hailuojia.com/wechat/oauth";
-    } else {
-      this.qrcode = `https://th5agent.hailuojia.com/detail`;
+  methods: {
+    shareDetailImg(name) {
+      this.dialogShareVisible = true;
+      if (name == "获客") {
+        debugger;
+        this.qrcode = "https://tucs.hailuojia.com/wechat/oauth";
+      } else {
+        this.qrcode = `https://th5agent.hailuojia.com/detail`;
+      }
+    },
+    changeActiveTwoIndex(index, unique_id, item) {
+      this.activeTabTwoIndex = index;
+      this.detailUser = item;
+      this.getuserlistDetail(unique_id);
+    },
+    // 客户动态浏览动态列表
+    getUserDynamicList() {
+      let param = {
+        unique_id: this.unique_id,
+        nickname: this.formInline.nickname,
+        p: 1,
+        pz: 50
+      };
+      api.getuserlist(param).then(response => {
+        let data = response.data;
+        if (data.status === 0) {
+          this.userDynamicList = data.data;
+          if (this.userDynamicList.length > 0) {
+            this.detailUser = this.userDynamicList[0];
+            this.getuserlistDetail(this.userDynamicList[0].unique_id);
+            this.activeTabTwoIndex = 0;
+          }
+        }
+      });
     }
   },
 
-  },
-    components: {
-    shareHouse,
+  components: {
+    shareHouse
   }
-
 };
 </script>
 
@@ -142,5 +229,11 @@ export default {
       margin-left: 30px;
     }
   }
+}
+.houseDynamicUser {
+  max-height: 1018px;
+  padding-top: 30px;
+  background-color: #f8faff;
+  display: flex;
 }
 </style>
