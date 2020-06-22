@@ -95,10 +95,9 @@ export default {
  .el-form-item {
     margin: 0;
  }
-  @media (min-width: 992px) and (max-width: 1199px) {
+@media (min-width: 992px) and (max-width: 1440px) {
     .iphone {
-      width: 296px;
-      height: 500px;
+      transform: scale(.84) translate(-65%, -60%);
     }
   }
   .el-textarea .el-input__count {

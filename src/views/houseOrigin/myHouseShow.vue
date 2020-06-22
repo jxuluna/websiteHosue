@@ -190,9 +190,15 @@
 </template>
 
 <script>
-import { mapGetters } from "vuex";
-import api from "../../api/house";
 import uploadExcel from "./uploadExcel";
+import uploadPhoto from "./uploadPhoto";
+import addDesc from "./addDesc";
+import shareHouse from "./shareHouse";
+import selectionCard from "./selectionCard";
+import api from "../../api/house";
+import { mapGetters } from "vuex";
+import config from "@/config";
+import callQuantityList from "./callQuantityList";
 
 export default {
   data() {
@@ -497,7 +503,12 @@ export default {
     }
   },
   components: {
-    uploadExcel
+    uploadExcel,
+    uploadPhoto,
+    addDesc,
+    shareHouse,
+    selectionCard,
+    callQuantityList
   }
 };
 </script>
