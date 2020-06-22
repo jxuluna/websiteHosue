@@ -16,7 +16,7 @@
         <div class="importText">
           导入表格请按照模板填写，请先
           <span class="downUpload">
-            <a href="http://hihome-test.oss-cn-beijing.aliyuncs.com/house_template.xlsx" style="color: #306cff;">
+            <a href="http://hihome-test.oss-cn-beijing.aliyuncs.com/house_template.xlsx" style="color: #306cff;text-decoration: underline;">
             下载模板
             </a>
             </span>

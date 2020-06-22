@@ -37,6 +37,7 @@ export default {
   .el-tabs__item.is-active{
     color: #0F79F5;
     font-weight: 600;
+    font-size: 16px;
   }
   .el-button--primary:focus,
   .el-button--primary:hover {
@@ -88,6 +89,12 @@ export default {
   .el-timeline-item__timestamp {
     color: #000;
   }
+.el-tabs__header{
+  margin: 0;
+}
+ .el-form-item {
+    margin: 0;
+ }
   @media (min-width: 992px) and (max-width: 1199px) {
     .iphone {
       width: 296px;
@@ -97,6 +104,42 @@ export default {
   .el-textarea .el-input__count {
     background: none;
     bottom: -4px;
+  }
+  .uploadDetailImg {
+   color: #fff;
+    background-color: #41cb84;
+    border-color: #41cb84;
+    line-height: 4px;
+  }
+  .uploadDetailImg:focus,
+  .uploadDetailImg:hover {
+    background: #62daad;
+    border-color: #62daad;
+    color: #fff;
+  }
+  .uploadDetailImg.is-active,
+  .uploadDetailImg:active {
+    background: #62daad;
+    border-color: #62daad;
+    color: #fff;
+  }
+  .shareDetailImg {
+    color: #fff;
+    background-color: #7071f1;
+    border-color: #7071f1;
+    //   line-height: 4px;
+  }
+  .shareDetailImg:focus,
+  .shareDetailImg:hover {
+    background: #7678f1;
+    border-color: #7678f1;
+    color: #fff;
+  }
+  .shareDetailImg.is-active,
+  .shareDetailImg:active {
+    background: #7678f1;
+    border-color: #7678f1;
+    color: #fff;
   }
 }
 </style>
