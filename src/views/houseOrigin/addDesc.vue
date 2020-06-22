@@ -21,9 +21,9 @@
         <el-form-item label prop="desc">
           <el-input type="textarea" maxlength="200" show-word-limit placeholder="请输入房源描述" v-model="ruleForm.desc" :autosize="{minRows:4}"></el-input>
         </el-form-item>
-        <el-form-item>
+        <el-form-item class="buttonDesc">
           <el-button style="width:100px;height:36px" type="primary" :loading="loading" @click="submitForm('ruleForm')">确认</el-button>
-          <el-button style="width:100px;height:36px" @click="OnClose">取消</el-button>
+          <el-button style="width:100px;height:36px;margin-left:20px" @click="OnClose">取消</el-button>
         </el-form-item>
       </el-form>
     </div>
@@ -167,8 +167,11 @@ export default {
     padding: 15px;
   }
   .el-dialog__body {
-    padding: 20px;
-    padding-bottom: 1px;
+    padding: 20px 30px 30px 30px;
+    .buttonDesc{
+      margin-top: 40px;
+    }
+
   } 
 }
 </style>

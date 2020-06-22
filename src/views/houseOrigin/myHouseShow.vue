@@ -4,10 +4,10 @@
       <div class="homeSearch">
         <el-form :inline="true" :model="formInline" class="demo-form-inline">
           <el-form-item label="搜索">
-            <el-input v-model="formInline.user" placeholder="请输入小区名称"></el-input>
+            <el-input v-model="formInline.block_or_area" placeholder="请输入小区名称"></el-input>
           </el-form-item>
           <el-form-item>
-            <el-button type="primary" @click="onSubmit" class="buttonSearch">查询</el-button>
+            <el-button type="primary" @click="getList('click')" class="buttonSearch">查询</el-button>
           </el-form-item>
         </el-form>
       </div>
@@ -261,7 +261,6 @@ export default {
       house: "",
       detailUser: {},
       detailList: []
-
     };
   },
   created() {
@@ -494,35 +493,17 @@ export default {
     },
     getAllhouseOrignPart() {
       let param = {
-        unique_id: this.unique_id,
-      }
-      api.getAllhouseOrign(param).then(response =>{
+        unique_id: this.unique_id
+      };
+      api.getAllhouseOrign(param).then(response => {
         let data = response.data;
-        if(data.status ===0 ) {
+        if (data.status === 0) {
           this.totalImportCount = data.data.totalImportCount;
           this.inCardImportHouseCount = data.data.inCardImportHouseCount;
         }
-      }
-
-      )
-    },
-    // 浏览动态
-    getUserList() {
-      let param = {
-        share_target: this.house_code,
-        share_unique_id: this.unique_id,
-        // time: new Date(),
-
-        p: 1,
-        pz: 6
-      };
-      api.getuserAlllist(param).then(response => {
-        let data = response.data;
-        if (data.status === 0) {
-          this.userList = data.data;
-        }
       });
     },
+
     // 浏览动态
     getUserList() {
       let param = {
@@ -630,6 +611,7 @@ export default {
   display: flex;
   .listHouseScroll {
     overflow-y: auto;
+    margin-bottom: 20px;
   }
   .uploadTimeShow {
     text-align: left;
@@ -904,6 +886,66 @@ export default {
   .imageUploadView {
     width: 240px;
     height: 120px;
+  }
+  .userList {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: space-between;
+    width: 100%;
+    // margin: 24px;
+    // margin-left: 12px;
+    align-items: center;
+    .userlist-item {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin: 20px 0 0 0;
+      padding: 0 8px;
+      height: 80px;
+      width: 280px;
+      border: 1px solid #e7eaec;
+      border-radius: 4px;
+      img {
+        width: 40px;
+        height: 40px;
+        border-radius: 50%;
+      }
+      .left {
+        display: flex;
+        justify-content: left;
+        align-items: center;
+        margin-left: 4px;
+        div {
+          margin-left: 16px;
+          text-align: left;
+          line-height: 24px;
+          p {
+            color: #999;
+            font-size: 14px;
+            &:first-child {
+              color: #333;
+              font-size: 16px;
+            }
+          }
+        }
+      }
+      .check {
+        align-self: start;
+        margin-top: 24px;
+        width: 62px;
+        height: 16px;
+        background: rgba(254, 102, 0, 0.1);
+        border-radius: 2px;
+        color: #fe6600;
+        font-size: 10px;
+        vertical-align: middle;
+        padding-top: 5px;
+        margin-right: 4px;
+      }
+    }
+  }
+  .color-4{
+      color: #444;
   }
 }
 </style>
