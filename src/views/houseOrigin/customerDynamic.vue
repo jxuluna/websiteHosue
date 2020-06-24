@@ -36,11 +36,13 @@
       </div>
     </div>
     <shareHouse :show.sync="dialogShareVisible" :id="id" :qrcode="qrcode" />
-    <div v-if="userDynamicList.length === 0" class="uploaddetail noData">
-      <img src="../../assets/img/noData.png" />
-      暂无动态
+    <div v-if="userDynamicList.length === 0" class="houseDynamicUser noDatas">
+      <div class="noData-content">
+        <img src="../../assets/img/noData.png" />
+        <div>暂无动态</div>
+      </div>
     </div>
-    <div class="houseDynamicUser">
+    <div class="houseDynamicUser" v-else>
       <div class="timeScroll">
         <ul class="infinite-list" v-infinite-scroll="load">
           <li
@@ -52,12 +54,15 @@
           >
             <div class="itemDeatil">
               <img :src="item.headimgurl" alt class="itemDeatilImg" />
-              <div>
-                <p class="itemDeatilText">{{item.nickname}}</p>
-                <div class="newUserTime" :class="{'oldUserTime' : item.user_type === '老用户'}">
-                  <div class="newConsumer">{{item.user_type}}</div>
-                  <div class="newTimeBefore">{{item.last_visit_time | diffTime}}</div>
+              <div class="listDynamic">
+                <div class="userListDynamic">
+                  <p class="itemDeatilText">{{item.nickname}}</p>
+                  <div class="newUserTime" :class="{'oldUserTime' : item.user_type === '老用户'}">
+                    <div class="newConsumer">{{item.user_type}}</div>
+                    <div class="newTimeBefore">{{item.last_visit_time | diffTime}}</div>
+                  </div>
                 </div>
+
                 <div class="scanTimeTotal">
                   <div class="timeLong">
                     <span class="bold">{{item.total_visit_time | formatMinute}}</span>
@@ -73,6 +78,90 @@
             <div class="arrow"></div>
           </li>
         </ul>
+      </div>
+      <div class="uploaddetail">
+        <el-card class="customer">
+          <div class="customer-info">
+            <img :src="detailUser.headimgurl" alt class="itemDeatilImg" />
+            <div class="customer-info-right">
+              <p class>
+                <span class="username">{{detailUser.nickname}}</span>
+                <span
+                  class="tags"
+                  :class="{'tags-green' : detailUser.user_type === '老用户'}"
+                >{{detailUser.user_type}}</span>
+              </p>
+              <div class>
+                <div class="timeLong">
+                  <span class="bold">{{detailUser.total_visit_time | formatMinute}}</span>
+                  <span class="scanTotal">
+                    浏览 ·
+                    <span class="bold">{{detailUser.house}}</span>套房 ·
+                    <span class="bold">{{detailUser.information}}</span>资讯
+                  </span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </el-card>
+        <div class="block time-line-content" v-if="detailList.length > 0">
+          <el-timeline>
+            <el-timeline-item
+              v-for="(item, index) in detailList"
+              :key="index"
+              :timestamp="item.time + ' | ' +  formatMinute(item.total_time)"
+              placement="top"
+              color="#116EF4"
+            >
+              <el-card shadow="never">
+                <div class="content" v-for="(elem, elIndex) in item.data" :key="elIndex">
+                  <p
+                    v-if="Object.keys(elem.house_info).length > 0"
+                    style="font-size: 12px;font-weight: 600;padding-left:2px;"
+                  >{{elem.stay_time_str}}</p>
+                  <div
+                    class="customer-info"
+                    v-if="elem.type == '1' && Object.keys(elem.house_info).length > 0"
+                  >
+                    <img :src="elem.house_info.image | toParse" alt class="itemDeatilImg" />
+                    <div class="customer-info-right">
+                      <p class>
+                        <span
+                          class
+                          style="font-weight: 600;font-size: 16px;"
+                        >{{elem.house_info.res_block_name}}</span>
+                      </p>
+                      <div class>
+                        <div class="timeLong">
+                          <span>{{elem.house_info.house_type}}丨{{elem.house_info.build_area}}丨{{elem.house_info.house_direction}}</span>
+                        </div>
+                        <div class="timeLong" style="margin-top:12px">
+                          <span>
+                            <span class="price">{{elem.house_info.house_price}}</span>
+                            万 {{elem.house_info.unit_price}}元/平
+                          </span>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                  <div
+                    v-else-if="elem.type == '2'  && Object.keys(elem.house_info).length > 0"
+                    class="customer-info2"
+                  >
+                    <div class="left">
+                      <p>{{elem.house_info.titel}}</p>
+                    </div>
+                    <img :src="elem.house_info.surface_plot | getImageUrl" alt class />
+                  </div>
+                </div>
+              </el-card>
+            </el-timeline-item>
+          </el-timeline>
+        </div>
+        <div v-else class="uploaddetail noData">
+          <img src="../../assets/img/TImeNoneHouse.png" />
+          暂无动态
+        </div>
       </div>
     </div>
     <addDesc :show.sync="dialogDescVisible" :title="descTitle" :id="id" />
@@ -300,6 +389,29 @@ export default {
     }
   },
   methods: {
+    load() {},
+    formatMinute(value) {
+      var theTime = parseInt(value); // 秒
+      var middle = 0; // 分
+      var hour = 0; // 小时
+
+      if (theTime > 60) {
+        middle = parseInt(theTime / 60);
+        theTime = parseInt(theTime % 60);
+        if (middle > 60) {
+          hour = parseInt(middle / 60);
+          middle = parseInt(middle % 60);
+        }
+      }
+      var result = "" + parseInt(theTime) + "秒";
+      if (middle > 0) {
+        result = "" + parseInt(middle) + "分" + result;
+      }
+      if (hour > 0) {
+        result = "" + parseInt(hour) + "小时" + result;
+      }
+      return result;
+    },
     shareDetailImg(name) {
       this.dialogShareVisible = true;
       if (name == "获客") {
@@ -346,6 +458,28 @@ export default {
             this.detailUser = this.userDynamicList[0];
             this.getuserlistDetail(this.userDynamicList[0].unique_id);
             this.activeTabTwoIndex = 0;
+          }
+        }
+      });
+    },
+    getuserlistDetail(share_target) {
+      let param = {
+        unique_id: share_target,
+        share_unique_id: this.unique_id,
+        p: 1,
+        pz: 10
+      };
+      let that = this;
+      api.getuserlistDetail(param).then(res => {
+        let data = res.data;
+        if (data.status === 0) {
+          this.detailList = [];
+          for (var key in data.data) {
+            this.detailList.push({
+              time: key,
+              total_time: data.data[key].total_time,
+              data: data.data[key].data
+            });
           }
         }
       });
@@ -407,7 +541,6 @@ export default {
     }
   }
   .DynamicHeaderDown {
-
     margin-top: 30px;
     width: 100%;
     display: flex;
@@ -431,11 +564,16 @@ export default {
   }
 }
 .houseDynamicUser {
-    min-height: 780px;
+//   min-height: 370px;
   padding-top: 30px;
   background-color: #f8faff;
   display: flex;
-//   padding-bottom: 20px;
+  padding-bottom: 20px;
+  max-height: 1018px;
+  .timeScroll {
+    overflow-y: auto;
+    margin-bottom: 20px;
+  }
 }
 .infinite-list-item {
   width: 380px;
@@ -505,14 +643,163 @@ export default {
       }
     }
   }
+  .listDynamic {
+    margin: 20px 0;
+    text-align: left;
+    display: flex;
+    justify-content: space-around;
+    align-items: flex-start;
+    flex-direction: column;
+  }
+  .itemDeatilText {
+    color: #333;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    width: 120px;
+    display: inline-block;
+    vertical-align: middle;
+    font-weight: 600;
+  }
+  .newUserTime {
+    width: 95px;
+    height: 20px;
+    font-size: 12px;
+    border-radius: 2px;
+    line-height: 22px;
+    font-weight: 400;
+    background: #116ef4;
+    display: -webkit-inline-box;
+    border: 1px solid #116ef4;
+    .newConsumer {
+      color: #116ef4;
+      padding: 0px 1px;
+      background: #fff;
+    }
+  }
+
+  .oldUserTime {
+    width: 95px;
+    height: 20px;
+    font-size: 12px;
+    border-radius: 2px;
+    line-height: 22px;
+    font-weight: 400;
+    background: #35bc99;
+    display: -webkit-inline-box;
+    border: 1px solid #35bc99;
+    .newConsumer {
+      color: #35bc99;
+      padding: 0px 1px;
+      background: #fff;
+    }
+  }
+
+  .newTimeBefore {
+    color: #fff;
+    padding: 0 2px;
+    width: 53px;
+    text-align: center;
+  }
+  .userListDynamic {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    width: 260px;
+  }
+  .bold {
+    font-size: 14px;
+    font-weight: 600;
+    text-align: left;
+    color: #333;
+    line-height: 14px;
+  }
+  .timeLong {
+    color: #333;
+    font-size: 12px;
+  }
+  //   .newConsumer {
+  //     color: #9ab7f7;
+  //     padding: 0px 1px;
+  //   }
 }
 .infinite-list-item-active {
   background: linear-gradient(left, #6e90f8, #9cb9f6);
   box-shadow: 0px 5px 8px 0px rgba(156, 185, 246, 0.4);
   cursor: pointer;
   position: relative;
+  .listDynamic {
+    margin: 20px 0;
+    text-align: left;
+    display: flex;
+    justify-content: space-around;
+    align-items: flex-start;
+    flex-direction: column;
+  }
   .itemDeatilText {
     color: #fff;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    width: 120px;
+    display: inline-block;
+    vertical-align: middle;
+    font-weight: 600;
+  }
+  .newUserTime {
+    width: 95px;
+    height: 20px;
+    font-size: 12px;
+    border-radius: 2px;
+    line-height: 22px;
+    font-weight: 400;
+    background: #fff;
+    display: -webkit-inline-box;
+    border: 1px solid #ffffff;
+  }
+  .oldUserTime {
+    width: 95px;
+    height: 20px;
+    font-size: 12px;
+    border-radius: 2px;
+    line-height: 22px;
+    font-weight: 400;
+    background: #fff;
+    display: -webkit-inline-box;
+    border: 1px solid #ffffff;
+    .newTimeBefore {
+      color: #ffffff;
+      background: #35bc99;
+      padding: 0 2px;
+      width: 53px;
+      text-align: center;
+    }
+  }
+  .userListDynamic {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    width: 260px;
+  }
+  .bold {
+    font-size: 14px;
+    font-weight: 600;
+    text-align: left;
+    color: #ffffff;
+    line-height: 14px;
+  }
+  .timeLong {
+    color: #fff;
+    font-size: 12px;
+  }
+  .newConsumer {
+    color: #9ab7f7;
+    padding: 0px 1px;
+  }
+  .newTimeBefore {
+    color: #ffffff;
+    background: #9cb9f6;
+    padding: 0 2px;
+    width: 53px;
+    text-align: center;
   }
   .detailArea {
     color: #fff;
@@ -539,6 +826,355 @@ export default {
       border-top: 30px solid transparent;
       border-left: 30px solid #9cb9f6;
       border-bottom: 30px solid transparent;
+    }
+  }
+}
+.uploaddetail {
+  background-color: #fff;
+  border-radius: 4px;
+  flex: 1;
+  min-height: 782px;
+  .block {
+    width: 60%;
+    margin-left: 30px;
+  }
+  .el-form {
+    margin-left: 340px;
+    .el-button {
+      height: 36px;
+      width: 100px;
+      // background-color: #306CFF;
+    }
+    .uploadDetailImg {
+      color: #fff;
+      background-color: #41cb84;
+      border-color: #41cb84;
+      line-height: 4px;
+    }
+    .uploadDetailImg:focus,
+    .uploadDetailImg:hover {
+      background: #62daad;
+      border-color: #62daad;
+      color: #fff;
+    }
+    .uploadDetailImg.is-active,
+    .uploadDetailImg:active {
+      background: #62daad;
+      border-color: #62daad;
+      color: #fff;
+    }
+    .shareDetailImg {
+      color: #fff;
+      background-color: #7071f1;
+      border-color: #7071f1;
+      line-height: 4px;
+    }
+    .shareDetailImg:focus,
+    .shareDetailImg:hover {
+      background: #7678f1;
+      border-color: #7678f1;
+      color: #fff;
+    }
+    .shareDetailImg.is-active,
+    .shareDetailImg:active {
+      background: #7678f1;
+      border-color: #7678f1;
+      color: #fff;
+    }
+  }
+  .lineHouse {
+    width: 655px;
+    margin: 0 24px;
+    background-color: #f2f2f2;
+  }
+  .brief {
+    overflow: hidden;
+    margin: 20px 0 30px 0;
+    .briefImg {
+      margin: 0px 20px;
+      margin-left: 24px;
+      width: 240px;
+      float: left;
+      .imageUploadView {
+        width: 240px;
+        height: 120px;
+      }
+    }
+    .noDataBriefImg {
+      border-radius: 2px;
+      margin: 0px 20px;
+      margin-left: 24px;
+      width: 240px;
+      height: 120px;
+      float: left;
+      border: 1px solid #d8dde2;
+      .noDataImg {
+        width: 56px;
+        height: 42px;
+        margin-top: 40px;
+      }
+    }
+    .briefDetail {
+      text-align: left;
+      overflow: hidden;
+      position: relative;
+      left: 10px;
+      .briefCharacter {
+        color: #333333;
+        font-size: 16px;
+        font-weight: 600;
+        line-height: 22px;
+      }
+      .detailLeft {
+        float: left;
+        margin-top: 10px;
+        line-height: 22px;
+        color: #757575;
+        font-size: 14px;
+        width: 138px;
+        .introduction {
+          padding: 5px 0;
+        }
+        .color-4 {
+          color: #444;
+        }
+      }
+      .detailLeft-last {
+        width: 220px;
+        .introduction {
+          margin-top: -22px;
+          margin-left: 116px;
+        }
+      }
+    }
+  }
+  .describe {
+    margin: 24px;
+    margin-bottom: 30px;
+    overflow: hidden;
+    .describe-title {
+      overflow: hidden;
+    }
+    .describe-content {
+      line-height: 25px;
+      text-align: left;
+      color: #999;
+      width: 654px;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      -webkit-box-orient: vertical;
+      -webkit-line-clamp: 3;
+    }
+    .houseDescribe {
+      float: left;
+      margin: 0 0 20px 0;
+      font-weight: 500;
+    }
+    .describeEdit {
+      float: right;
+      margin: 0 0 20px 0;
+      color: #116ef4;
+      font-size: 14px;
+      cursor: pointer;
+    }
+    .describeEditImg {
+      width: 150px;
+      padding: 10px 10px 10px 0;
+    }
+    .characterNone {
+      color: #adadad;
+      font-size: 14px;
+    }
+    .addDescribe {
+      margin: 10px 20px;
+      width: 110px;
+      height: 36px;
+    }
+  }
+  .dynamic {
+    margin: 24px 0;
+    .houseDynamic {
+      float: left;
+      margin: 2px 0 20px 24px;
+      font-weight: 500;
+    }
+    .dynamicEdit {
+      float: right;
+      margin: 2px 30px 20px 0;
+      color: #adadad;
+      font-size: 14px;
+    }
+    .describeEditImg {
+      width: 150px;
+      padding: 100px 0px 10px 54px;
+    }
+    .noneReader {
+      color: #adadad;
+      font-size: 14px;
+      position: absolute;
+      right: 320px;
+      top: 210px;
+    }
+  }
+  .customer {
+    margin: 10px 30px 30px 30px;
+    .customer-info {
+      display: flex;
+      align-items: center;
+      img {
+        width: 60px;
+        height: 60px;
+        border-radius: 50%;
+      }
+      .customer-info-right {
+        margin-left: 16px;
+        text-align: left;
+        div {
+          margin-top: 10px;
+          background: #f7f8fa;
+          padding: 2px 0;
+          .timeLong {
+            margin: 0;
+            font-size: 12px;
+            .bold {
+              font-weight: 600;
+              font-size: 14px;
+            }
+          }
+        }
+        .username {
+          color: #333;
+          overflow: hidden;
+          text-overflow: ellipsis;
+          -o-text-overflow: ellipsis;
+          white-space: nowrap;
+          width: 120px;
+          display: inline-block;
+          vertical-align: middle;
+          font-weight: 600;
+        }
+        .phone {
+          color: #999;
+        }
+        .tags {
+          display: inline-block;
+          background-image: url("../../assets/img/tags-icon.png");
+          background-size: cover;
+          color: #fff;
+          height: 25px;
+          width: 62px;
+          line-height: 25px;
+          text-align: center;
+          font-size: 12px;
+          margin-left: 10px;
+          padding-top: 2px;
+        }
+        .tags-green {
+          background-image: url("../../assets/img/middleNewUser.png");
+          padding-top: 2px;
+        }
+      }
+    }
+  }
+  .time-line-content {
+    .el-card {
+      background: #f7f8fa;
+      border: none;
+      .content {
+        margin: 10px 0;
+      }
+      .customer-info {
+        display: flex;
+        align-items: center;
+        margin-top: 10px;
+        img {
+          width: 100px;
+          height: 70px;
+        }
+        .customer-info-left {
+          width: 250px;
+          text-align: left;
+        }
+        .customer-info-right {
+          margin-left: 16px;
+          text-align: left;
+          div {
+            // margin-top: 10px;
+            background: #f7f8fa;
+            padding: 2px 0;
+            .timeLong {
+              margin: 0;
+              font-size: 12px;
+              .price {
+                color: #ff5447;
+                font-size: 18px;
+                font-weight: 600;
+              }
+            }
+          }
+          .username {
+            color: #333;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            -o-text-overflow: ellipsis;
+            white-space: nowrap;
+            width: 120px;
+            display: inline-block;
+            vertical-align: middle;
+            font-weight: 600;
+          }
+          .phone {
+            color: #999;
+          }
+        }
+      }
+      .customer-info2 {
+        display: flex;
+        justify-content: space-between;
+        margin-top: 10px;
+        .left {
+          flex: 1;
+          p {
+            font-weight: bold;
+            font-size: 16px;
+          }
+        }
+        img {
+          width: 100px;
+          height: 70px;
+        }
+      }
+    }
+  }
+  .noData {
+    min-height: 500px !important;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    color: #999;
+    img {
+      width: 140px;
+      height: 120px;
+    }
+  }
+}
+.noDatas {
+  text-align: center;
+  padding-top: 30px;
+  background-color: #f8faff;
+  height: 370px;
+  .noData-content {
+    padding-top: 50px;
+    background-color: #fff;
+    width: 100%;
+    img {
+      width: 140px;
+      height: 120px;
+    }
+    div {
+      font-size: 14px;
+      color: #999;
     }
   }
 }

@@ -31,7 +31,7 @@
 
     <div class="contentDetailHouse" v-else>
       <div class="listHouseScroll">
-        <ul class="infinite-list" v-infinite-scroll="load">
+        <ul class="infinite-list" v-infinite-scroll="load" infinite-scroll-disabled="disabled">
           <div v-for="(ele,index) in houstList" :key="index">
             <div class="uploadTimeShow">{{ele.time}}上传</div>
             <li
@@ -61,6 +61,10 @@
               </div>
               <div class="arrow"></div>
             </li>
+                    <p v-if="loading" style="margin-top:10px;" class="loading">
+          <span>加载中...</span>
+        </p>
+        <p v-if="noMore" style="margin-top:10px;font-size:13px;color:#ccc">没有更多了</p>
           </div>
         </ul>
       </div>
@@ -125,7 +129,7 @@
                   <span class="cardsBackground">{{house_cards[2].name}}</span>
                   <span
                     class="viewAllCards"
-                    style="cursor:pointer;background-color:#fff;font-size:14px"
+                    style="cursor:pointer;background-color:#fff;font-size:14px;color:#4e84ff;display:block"
                     @click="isDialogCardVisible"
                   >查看全部{{house_cards.length}}个分类></span>
                 </div>
@@ -249,7 +253,7 @@ export default {
       inCardImportHouseCount: 0, //分类房源
       block_or_area: "", // 小区名称或商圈名称
       qrcode: "", // 二维码
-      pz: 500,
+      pz: 10,
       p: 1,
       userList: [],
       userDynamicList: [],
@@ -260,7 +264,8 @@ export default {
       information: "",
       house: "",
       detailUser: {},
-      detailList: []
+      detailList: [],
+      loading: false
     };
   },
   created() {
@@ -274,12 +279,19 @@ export default {
       if (to.path == "/myHouse") {
         this.getList();
         // this.getStaticClient();
-        this.getUserDynamicList();
+        // this.getUserDynamicList();
       }
     }
   },
   computed: {
-    ...mapGetters(["unique_id"])
+    ...mapGetters(["unique_id"]),
+        disabled () {
+      return this.loading || this.noMore
+    },
+    noMore() {
+      //当起始页数大于总页数时停止加载
+      return this.p >= this.totalImportCount / 10 - 1;
+    },
   },
   filters: {
     toParse(value) {
@@ -413,7 +425,14 @@ export default {
     }
   },
   methods: {
-    load() {},
+    load() {
+      //滑到底部时进行加载
+      this.loading = true;
+      setTimeout(() => {
+        this.p += 1; //页数+1
+        this.getList(); //调用接口，此时页数+1，查询下一页数据
+      }, 2000);
+    },
     onSubmit() {},
     getList(type) {
       let param = {
@@ -425,13 +444,15 @@ export default {
       api.getHouseList(param).then(response => {
         let data = response.data;
         if (data.status === 0) {
-          this.houstList = [];
+          let list = [];
           for (let key in data.data.list) {
-            this.houstList.push({
+            list.push({
               time: key,
               data: data.data.list[key]
             });
           }
+          this.houstList = this.houstList.concat(list);
+          this.loading = false;
           if (type === "click") {
             this.id = 0;
           }
@@ -482,9 +503,9 @@ export default {
     shareDetailImg(name) {
       this.dialogShareVisible = true;
       if (name == "获客") {
-        this.qrcode = "https://tucs.hailuojia.com/wechat/oauth";
+        this.qrcode = "https://ucs.hailuojia.com/wechat/oauth";
       } else {
-        this.qrcode = `https://th5agent.hailuojia.com/detail?house_code=${this.house_code}&unique_id=${this.unique_id}`;
+        this.qrcode = `https://h5agent.hailuojia.com/detail?house_code=${this.house_code}&unique_id=${this.unique_id}`;
       }
     },
     isDialogDescVisible(title) {
@@ -777,7 +798,8 @@ export default {
           display: flex;
         }
         .introductionHouseType {
-          margin-right: 33px;
+          margin-right: 17px;
+          width: 106px;
         }
       }
 

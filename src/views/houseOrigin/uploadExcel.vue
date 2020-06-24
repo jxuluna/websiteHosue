@@ -141,32 +141,42 @@ export default {
       form.append("unique_id", this.unique_id);
 
       // 开始动画
-      this.percentageLength = 0;
+      //this.percentageLength = 0;
       this.showProcess = true;
       this.isBeforeUpload = false;
-      const interval = setInterval(() => {
-        if (this.percentageLength >= 99) {
-          clearInterval(interval);
-          return;
-        }
-        this.percentageLength += 1;
-      }, 20);
+      // const interval = setInterval(() => {
+      //   if (this.percentageLength >= 99) {
+      //     clearInterval(interval);
+      //     return;
+      //   }
+      //   this.percentageLength += 1;
+      // }, 20);
       let that = this;
       axios
         .post(FileController, form, {
-          headers: { enctype: "multipart/form-data" }
+          headers: { enctype: "multipart/form-data" },
+          onUploadProgress:function(progressEvent){ 
+            let percent = parseInt(progressEvent.loaded / progressEvent.total * 100 | 0);
+            if ( percent < 100 ) {
+              that.percentageLength = percent;
+            }
+          }
         })
         .then(function(response) {
           console.log(response);
           if (response.data.status === 0) {
             that.total_count = response.data.data.total_count;
-            setTimeout(() => {
-              that.percentageLength = 100;
-              that.showProcess = false;
-              that.isSuccess = true;
-              that.$parent.getList();
-              that.$parent.getDetail();
-            }, 3000);
+            that.isSuccess = true;
+            that.$parent.getList();
+            that.$parent.getDetail();
+            that.showProcess = false;
+            // setTimeout(() => {
+            //   that.percentageLength = 100;
+            //   that.showProcess = false;
+            //   that.isSuccess = true;
+            //   that.$parent.getList();
+            //   that.$parent.getDetail();
+            // }, 3000);
             that.filename = response.data.data.filename;
           } else {
             that.showProcess = false;
