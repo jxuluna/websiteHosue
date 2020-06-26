@@ -16,6 +16,7 @@ router.beforeEach((to, from, next) => {
   if (session && session !== 'null') {//未登录
     store.dispatch('getUserInfo', { session }).then(res => { // 拉取user_info
       if (res.data.status === '-3') {
+        localStorage.removeItem('session');
         if (to.name !== 'login') {
           next({path: '/login'});
         }

@@ -4,7 +4,8 @@
       <div class="homeSearch">
         <el-form :inline="true" :model="formInline" class="demo-form-inline">
           <el-form-item label="搜索">
-            <el-input v-model="formInline.block_or_area" placeholder="请输入小区名称"></el-input>
+            <el-input v-model="formInline.block_or_area" placeholder="请输入小区名称" @keyup.enter.native="getList('click')"></el-input>
+            <el-input v-show="false"></el-input>
           </el-form-item>
           <el-form-item>
             <el-button type="primary" @click="getList('click')" class="buttonSearch">查询</el-button>
@@ -31,9 +32,9 @@
 
     <div class="contentDetailHouse" v-else>
       <div class="listHouseScroll">
-        <ul class="infinite-list" v-infinite-scroll="load" infinite-scroll-disabled="disabled">
+        <ul class="infinite-list" v-infinite-scroll="load" :infinite-scroll-disabled="disabled">
           <div v-for="(ele,index) in houstList" :key="index">
-            <div class="uploadTimeShow">{{ele.time}}上传</div>
+            <div class="uploadTimeShow" v-if="ele.isTime">{{ele.time}}上传</div>
             <li
               v-for="(item,dataIndex) in ele.data"
               class="infinite-list-item"
@@ -45,7 +46,7 @@
                 <div v-if="item.image !== ''" class="itemDeatilNoData">
                   <img alt :src="item.image | toParse" class="itemDeatilImg" />
                 </div>
-                <div v-else class="itemDeatilNoData">
+                <div v-else class="itemDeatilNoData" style="background-color:#fff">
                   <img src="../../assets/img/briefImgPhoto.png" alt class="itemDeatilNoImg" />
                 </div>
                 <div class="listViewShow">
@@ -61,11 +62,11 @@
               </div>
               <div class="arrow"></div>
             </li>
+          </div>
                     <p v-if="loading" style="margin-top:10px;" class="loading">
           <span>加载中...</span>
         </p>
         <p v-if="noMore" style="margin-top:10px;font-size:13px;color:#ccc">没有更多了</p>
-          </div>
         </ul>
       </div>
       <div class="listHouseDetail">
@@ -290,7 +291,7 @@ export default {
     },
     noMore() {
       //当起始页数大于总页数时停止加载
-      return this.p >= this.totalImportCount / 10 - 1;
+      return this.p >= this.totalImportCount / 10;
     },
   },
   filters: {
@@ -435,13 +436,21 @@ export default {
     },
     onSubmit() {},
     getList(type) {
+      if (type === "click") {
+        this.p = 1;
+        // this.noMore = false;
+      }
       let param = {
         p: this.p,
         pz: this.pz,
         unique_id: this.unique_id,
         block_or_area: this.formInline.block_or_area
       };
+      let that = this;
       api.getHouseList(param).then(response => {
+        if (type === "click") {
+          this.houstList = [];
+        }
         let data = response.data;
         if (data.status === 0) {
           let list = [];
@@ -452,6 +461,17 @@ export default {
             });
           }
           this.houstList = this.houstList.concat(list);
+          for (let i = 0; i < this.houstList.length; i++) {
+            if (i !== 0) {
+              if ((this.houstList[i].time == this.houstList[i - 1].time)) {
+                this.houstList[i].isTime = false
+              } else {
+                this.houstList[i].isTime = true
+              }
+            } else {
+              this.houstList[i].isTime = true
+            }
+          }
           this.loading = false;
           if (type === "click") {
             this.id = 0;
@@ -489,6 +509,13 @@ export default {
           this.agent_house_intro = data.data.agent_house_intro;
           this.image = data.data.image;
           this.house_cards = data.data.house_cards;
+          this.houstList.forEach(ele => {
+            ele.data.forEach(item => {
+              if (item.house_code == this.house_code) {
+                item.house_cards = data.data.house_cards
+              }
+            })
+          })
           this.getUserList();
         }
       });
@@ -626,7 +653,7 @@ export default {
   }
 }
 .contentDetailHouse {
-  max-height: 1018px;
+  max-height: 1060px;
   padding-top: 30px;
   background-color: #f8faff;
   display: flex;
@@ -649,6 +676,7 @@ export default {
     justify-content: start;
     align-items: center;
     border-radius: 4px;
+    cursor: pointer;
     .itemDeatil {
       display: flex;
       .itemDeatilImg {

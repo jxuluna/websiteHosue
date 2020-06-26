@@ -12,8 +12,8 @@
             </ul>
             <div class="login_box">
                 <ul class="login_ul">
-                    <li @click="loginCode" style="padding: 4px 10px;">{{nickname}}</li>
-                    <li class="userInfo"><span></span><img :src="headimgurl" alt=""></li>
+                    <li @click="loginCode">{{nickname}}</li>
+                    <li class="userInfo"><img :src="headimgurl" alt="" style="margin-left:15px"></li>
                 </ul>
             </div>
         </div>
@@ -62,23 +62,23 @@ import { mapGetters } from 'vuex'
 <style lang="scss">
     .header_page{
         width: 100%;
-        height: 90px;
+        height: 80px;
         .header_main{
             width: 1090px;
-            height: 90px;
+            height: 80px;
             margin: 0 auto;
             .logo{
                 width: 170px;
                 float: left;
-                height: 90px;
+                height: 80px;
                 img{
-                    width: 100%;
-                    margin-top: 30px;
+                    width: 121px;
+                    margin-top: 29px;
                 }
             }
             .header_ul{
                 float: left;
-                line-height: 90px;
+                line-height: 80px;
                 padding-left: 50px;
                 li{
                     font-size:14px;
@@ -98,10 +98,12 @@ import { mapGetters } from 'vuex'
             .login_box{
                 float: right;
                 ul{
-                    line-height: 90px;
+                    line-height: 80px;
                     font-size:12px;
                     font-family:PingFangSC-Regular,PingFang SC;
                     font-weight:400;
+                    padding: 0 10px;
+                    box-sizing: border-box;
                     // color:rgba(0,0,0,.5);
                     li{
                         float: left;

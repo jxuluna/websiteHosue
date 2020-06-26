@@ -48,7 +48,7 @@ export default {
     // },
     unique_id: {
       default: '',
-      type: String
+      type: Number
     }
   },
   data() {

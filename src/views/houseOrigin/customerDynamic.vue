@@ -22,10 +22,11 @@
       <div class="DynamicHeaderDown">
         <el-form :inline="true" :model="formInline" class="demo-form-inline">
           <el-form-item label="搜索">
-            <el-input v-model="formInline.nickname" placeholder="请输入关键字"></el-input>
+            <el-input v-model="formInline.nickname" placeholder="请输入关键字" @keyup.enter.native="getUserDynamicList('click')"></el-input>
+            <el-input v-show="false"></el-input>
           </el-form-item>
           <el-form-item>
-            <el-button type="primary" @click="getUserDynamicList" class="buttonSearch">查询</el-button>
+            <el-button type="primary" @click="getUserDynamicList('click')" class="buttonSearch">查询</el-button>
           </el-form-item>
         </el-form>
         <el-form :inline="true" :model="formInline" class="demo-form-inline">
@@ -44,7 +45,7 @@
     </div>
     <div class="houseDynamicUser" v-else>
       <div class="timeScroll">
-        <ul class="infinite-list" v-infinite-scroll="load">
+        <ul class="infinite-list" v-infinite-scroll="load1" :infinite-scroll-disabled="disabled1">
           <li
             v-for="(item,index) in userDynamicList"
             class="infinite-list-item"
@@ -77,6 +78,10 @@
             </div>
             <div class="arrow"></div>
           </li>
+                              <p v-if="loading1" style="margin-top:10px;" class="loading">
+          <span>加载中...</span>
+        </p>
+        <p v-if="noMore1" style="margin-top:10px;font-size:13px;color:#ccc">没有更多了</p>
         </ul>
       </div>
       <div class="uploaddetail">
@@ -104,7 +109,7 @@
             </div>
           </div>
         </el-card>
-        <div class="block time-line-content" v-if="detailList.length > 0">
+        <div class="block time-line-content infinite-list" v-infinite-scroll="load2" :infinite-scroll-disabled="disabled2" v-if="detailList.length > 0" style="overflow: auto;height: 860px;">
           <el-timeline>
             <el-timeline-item
               v-for="(item, index) in detailList"
@@ -157,6 +162,9 @@
               </el-card>
             </el-timeline-item>
           </el-timeline>
+                                        <p v-if="loading2" style="margin-top:10px;" class="loading">
+          <span>加载中...</span>
+        </p>
         </div>
         <div v-else class="uploaddetail noData">
           <img src="../../assets/img/TImeNoneHouse.png" />
@@ -225,8 +233,10 @@ export default {
       inCardImportHouseCount: 0, //分类房源
       block_or_area: "", // 小区名称或商圈名称
       qrcode: "", // 二维码
-      pz: 500,
-      p: 1,
+      pz1: 10,
+      p1: 1,
+      pz2: 10,
+      p2: 1,
       userList: [],
       userDynamicList: [],
       nickname: "",
@@ -236,11 +246,30 @@ export default {
       information: "",
       house: "",
       detailUser: {},
-      detailList: []
+      detailList: [],
+      loading1: false,
+      noMore1: false,
+      loading2: false,
+      noMore2: false,
+      share_target: '',
     };
   },
   computed: {
-    ...mapGetters(["unique_id"])
+    ...mapGetters(["unique_id"]),
+    disabled1 () {
+      return this.loading1 || this.noMore1
+    },
+    // noMore1() {
+    //   //当起始页数大于总页数时停止加载
+    //   return this.p1 >= this.totalImportCount / 10 - 1;
+    // },
+    disabled2 () {
+      return this.loading2 || this.noMore2
+    },
+    // noMore2() {
+    //   //当起始页数大于总页数时停止加载
+    //   return this.p2 >= this.totalImportCount / 10 - 1;
+    // },
   },
   created() {
     // this.getList();
@@ -389,7 +418,22 @@ export default {
     }
   },
   methods: {
-    load() {},
+    load1() {
+      //滑到底部时进行加载
+      this.loading1 = true;
+      setTimeout(() => {
+        this.p1 += 1; //页数+1
+        this.getUserDynamicList(); //调用接口，此时页数+1，查询下一页数据
+      }, 1000);
+    },
+    load2() {
+      //滑到底部时进行加载
+      this.loading2 = true;
+      setTimeout(() => {
+        this.p2 += 1; //页数+1
+        this.getuserlistDetail(this.share_target); //调用接口，此时页数+1，查询下一页数据
+      }, 1000);
+    },
     formatMinute(value) {
       var theTime = parseInt(value); // 秒
       var middle = 0; // 分
@@ -415,14 +459,18 @@ export default {
     shareDetailImg(name) {
       this.dialogShareVisible = true;
       if (name == "获客") {
-        this.qrcode = "https://tucs.hailuojia.com/wechat/oauth";
+        this.qrcode = "https://ucs.hailuojia.com/wechat/oauth";
       } else {
-        this.qrcode = `https://th5agent.hailuojia.com/detail?house_code=${this.house_code}&unique_id=${this.unique_id}`;
+        this.qrcode = `https://h5agent.hailuojia.com/detail?house_code=${this.house_code}&unique_id=${this.unique_id}`;
       }
     },
     changeActiveTwoIndex(index, unique_id, item) {
+      this.p2 = 1;
+      this.noMore2 = true;
       this.activeTabTwoIndex = index;
       this.detailUser = item;
+      this.share_target = unique_id;
+      this.detailList = [];
       this.getuserlistDetail(unique_id);
     },
     getStaticClient() {
@@ -443,44 +491,68 @@ export default {
       this.dialogCallQuantityVisible = true;
     },
     // 客户动态浏览动态列表
-    getUserDynamicList() {
+    getUserDynamicList(type) {
+      if (type == 'click') {
+        this.p1 = 1;
+        this.noMore1 = false;
+      }
       let param = {
         unique_id: this.unique_id,
         nickname: this.formInline.nickname,
-        p: 1,
-        pz: 50
+        p: this.p1,
+        pz: this.pz1
       };
       api.getuserlist(param).then(response => {
+        if (type == 'click') {
+          this.userDynamicList = [];
+        }
         let data = response.data;
         if (data.status === 0) {
-          this.userDynamicList = data.data;
-          if (this.userDynamicList.length > 0) {
+          if (data.data.length == 0) {
+            this.noMore1 = true;
+          }
+          this.userDynamicList = this.userDynamicList.concat(data.data);
+          if (this.userDynamicList.length > 0 && !this.loading1) {
             this.detailUser = this.userDynamicList[0];
-            this.getuserlistDetail(this.userDynamicList[0].unique_id);
+            this.share_target = this.userDynamicList[0].unique_id;
+            this.getuserlistDetail(this.userDynamicList[0].unique_id, type);
             this.activeTabTwoIndex = 0;
           }
+          this.loading1 = false;
         }
       });
     },
-    getuserlistDetail(share_target) {
+    getuserlistDetail(share_target, type) {
+      if (type == 'click') {
+        this.p2 = 1;
+      }
       let param = {
         unique_id: share_target,
         share_unique_id: this.unique_id,
-        p: 1,
+        p: this.p2,
         pz: 10
       };
       let that = this;
       api.getuserlistDetail(param).then(res => {
+        if (type == 'click') {
+          this.detailList = [];
+          this.noMore2 = false;
+        }
         let data = res.data;
         if (data.status === 0) {
-          this.detailList = [];
+          let list = [];
           for (var key in data.data) {
-            this.detailList.push({
+            list.push({
               time: key,
               total_time: data.data[key].total_time,
               data: data.data[key].data
             });
           }
+          if (list.length == 0) {
+            this.noMore2 = true;
+          }
+          this.detailList = this.detailList.concat(list);
+          this.loading2 = false;
         }
       });
     }
@@ -584,6 +656,7 @@ export default {
   justify-content: start;
   align-items: center;
   border-radius: 4px;
+  cursor: pointer;
   .itemDeatil {
     display: flex;
     .itemDeatilImg {
@@ -1177,5 +1250,8 @@ export default {
       color: #999;
     }
   }
+}
+.el-timeline {
+  padding-left: 2px;
 }
 </style>

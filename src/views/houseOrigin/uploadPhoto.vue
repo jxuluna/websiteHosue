@@ -16,7 +16,7 @@
       </div>
       <el-upload
         class="avatar-uploader"
-        action="https://tapps.hailuojia.com/common/upload"
+        action="https://apps.hailuojia.com/common/upload"
         :show-file-list="false"
         :http-request="uploadSectionFile"
         :before-upload="beforeAvatarUpload"
@@ -92,7 +92,7 @@ export default {
       //自定义文件上传
       var fileObj = param.file;
       // 接收上传文件的后台地址
-      var FileController = "https://tapps.hailuojia.com/common/upload";
+      var FileController = "https://apps.hailuojia.com/common/upload";
       // FormData 对象
       var form = new FormData();
       // 文件对象
@@ -111,7 +111,7 @@ export default {
           return;
         }
         this.percentageLength += 1;
-      }, 20);
+      }, 50);
       let that = this;
       axios
         .post(FileController, form, {
@@ -136,11 +136,17 @@ export default {
                 .then(res => {
                   let data = res.data;
                   if (data.status === 0) {
-                    that.$parent.getList();
+                    that.$parent.houstList.forEach(ele => {
+                      ele.data.forEach(item => {
+                        if (item.id == that.$parent.id) {
+                          item.image = JSON.stringify([response.data.data.url])
+                        }
+                      })
+                    })
                     that.$parent.getDetail();
                   }
                 });
-            }, 1000);
+            }, 3000);
           } else {
             that.showProcess = false;
             that.isBeforeUpload = true;

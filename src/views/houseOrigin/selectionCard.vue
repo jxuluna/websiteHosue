@@ -19,7 +19,7 @@
           @click="changeActive(item.id)"
         >
           <div class="left">
-            <img src="../../assets/img/itemDeatilPhoto.png" alt class="itemDeatilImg" />
+            <img :src="item.image" alt class="itemDeatilImg" />
             <div>
               <p style="font-size:16px;font-weight:500;color:#333333">{{item.name}}</p>
               <p style="font-size:14px;font-weight:400;color:#999999">{{item.house_count}}套</p>
@@ -44,14 +44,25 @@ export default {
     },
     unique_id: {
       default: 0,
-      type: String
+      type: Number
     }
   },
   data() {
     return {
       dialogCardVisible: this.show,
       list: [],
-      card_ids: []
+      card_ids: [],
+      imgList: [
+        'https://hihome2019.oss-cn-beijing.aliyuncs.com/mina/test/featured_card_0.png',
+        'https://hihome2019.oss-cn-beijing.aliyuncs.com/mina/test/featured_card_1.png',
+        'https://hihome2019.oss-cn-beijing.aliyuncs.com/mina/test/featured_card_2.png',
+        'https://hihome2019.oss-cn-beijing.aliyuncs.com/mina/test/featured_card_3.png',
+        'https://hihome2019.oss-cn-beijing.aliyuncs.com/mina/test/featured_card_4.png',
+        'https://hihome2019.oss-cn-beijing.aliyuncs.com/mina/test/featured_card_5.png',
+        'https://hihome2019.oss-cn-beijing.aliyuncs.com/mina/test/featured_card_6.png',
+        'https://hihome2019.oss-cn-beijing.aliyuncs.com/mina/test/featured_card_7.png',
+        'https://hihome2019.oss-cn-beijing.aliyuncs.com/mina/test/featured_card_8.png',
+      ]
     };
   },
   watch: {
@@ -78,7 +89,7 @@ export default {
         if (data.status === 0) {
           // that.getSelectCardt();
           that.$parent.getDetail();
-          that.$parent.getList();
+          // that.$parent.getList();
                 this.$parent.getAllhouseOrignPart();
         }
       });
@@ -98,11 +109,16 @@ export default {
         let data = response.data;
         if (data.status === 0) {
           this.list = data.data;
-          this.list.forEach(elem => {
-            if (elem.selected == 1) {
-              this.card_ids.push(elem.id);
+          this.list.map((item, index) => {
+            if (item.selected == 1) {
+              this.card_ids.push(item.id);
             }
-          });
+            if (index < 9) {
+              item.image = this.imgList[index]
+            } else {
+              item.image = this.imgList[Math.floor(Math.random()*this.imgList.length)]
+            }
+          })
         }
       });
     },
@@ -111,6 +127,19 @@ changeActive(id) {
         return elem.id == id;
       });
       ar.selected = ar.selected == 1 ? 0 : 1;
+      if (ar.selected == 1) {
+        this.$message.closeAll();
+        this.$message({
+          message: "添加成功",
+          type: "success"
+        });
+      } else {
+        this.$message.closeAll();
+        this.$message({
+          message: "取消成功",
+          type: "success"
+        });
+      }
       this.card_ids = [];
       this.list.forEach(item => {
         if (item.selected === 1) {
@@ -213,6 +242,8 @@ changeActive(id) {
   }
   .el-dialog__body {
     padding: 0 20px 20px;
+    overflow-y: auto;
+    max-height: 500px;
   } 
 }
 </style>

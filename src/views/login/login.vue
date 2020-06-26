@@ -67,7 +67,7 @@ export default {
       id: "login_container",
       appid: "wx2ebdf3b468fefeee",
       scope: "snsapi_login",
-      redirect_uri: 'http://tucs.hailuojia.com/open/userinfo/get',
+      redirect_uri: 'https://ucs.hailuojia.com/open/userinfo/get',
       state: "website",
       style: "",
       href: "https://hihome2019.oss-cn-beijing.aliyuncs.com/code.css"
@@ -80,7 +80,7 @@ export default {
         id: "login_container",
         appid: "wx2ebdf3b468fefeee",
         scope: "snsapi_login",
-        redirect_uri: "http://tucs.hailuojia.com/open/userinfo/get",
+        redirect_uri: "https://ucs.hailuojia.com/open/userinfo/get",
         state: "website",
         style: "",
         href: ""
@@ -105,7 +105,7 @@ export default {
     background-size: 100% 100%;
     position: absolute;
     left: 50%;
-    top: 50%;
+    top: 52%;
     transform: translate(-50%, -50%);
     width: 356px;
     height: 600px;
